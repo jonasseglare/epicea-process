@@ -68,9 +68,10 @@
       (call-process-with-channels 
        args 
        (async/go (input-fun input))
-       (if sync? 
-         (<!! result-chan)
-         result-chan)))))
+       result-chan)
+      (if sync?
+        (<!! result-chan)
+        result-chan))))
 
 (defn bytes-to-string [x]
   (String. x))

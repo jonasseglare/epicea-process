@@ -7,7 +7,7 @@
 (deftest string-test
   (testing "FIXME, I fail."
     (is (= "kattskit" (bytes-to-string (string-to-bytes "kattskit"))))
-    (is (= (:stdout (result/get-value (<!! (call-sort "kba\nabc"))))
+    (is (= (:stdout (result/get-value (call-sort "kba\nabc")))
            "abc\nkba\n"))))
 
 (deftest edn-test
