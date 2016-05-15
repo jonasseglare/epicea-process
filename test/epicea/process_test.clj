@@ -1,12 +1,13 @@
 (ns epicea.process-test
   (:require [clojure.test :refer :all]
             [clojure.core.async :refer [<!!]]
-            [epicea.process :refer :all]))
+            [epicea.process :refer :all]
+            [epicea.result :as result]))
 
 (deftest string-test
   (testing "FIXME, I fail."
     (is (= "kattskit" (bytes-to-string (string-to-bytes "kattskit"))))
-    (is (= (:stdout (:result (<!! (call-sort "kba\nabc"))))
+    (is (= (:stdout (result/get-value (<!! (call-sort "kba\nabc"))))
            "abc\nkba\n"))))
 
 (deftest edn-test
@@ -24,7 +25,7 @@
 
       ;; OBS: The test script will corrupt line endings (\n), so dont try that
       (let [s "mjao"]
-        (is (= (:stdout (:result (<!! (pfun s)))) s)))
+        (is (= (:stdout (result/get-value (<!! (pfun s)))) s)))
 
-      (is (= (:stdout (:result (<!! (pfun [:a 1]))))
+      (is (= (:stdout (result/get-value (<!! (pfun [:a 1]))))
              [:a 1])))))

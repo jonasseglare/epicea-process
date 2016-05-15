@@ -86,8 +86,8 @@
                           :stderr (fun (:stderr x))}))
         (catch RuntimeException e
           (println "Failed in result-to-x-fun")
-          (println "stdout: " (:stdout (:result result)))
-          (println "stderr: " (:stdout (:result result)))
+          (println "stdout: " (:stdout (result/get-value result)))
+          (println "stderr: " (:stdout (result/get-value result)))
           (result/make-failure e))))))
 
 (def result-to-string (result-to-x-fun bytes-to-string))
@@ -128,4 +128,4 @@
   (println 
    (str
     "OUTPUT:\n" 
-    (:stdout (:result (<!! (call-sort "bajs\nrulle\nmjao\napa")))))))
+    (:stdout (result/get-value (<!! (call-sort "bajs\nrulle\nmjao\napa")))))))
