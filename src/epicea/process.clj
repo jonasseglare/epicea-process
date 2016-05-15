@@ -62,13 +62,15 @@
   ([args]
    (call-process args nil)))
 
-(defn make-transformed-process-fun [args input-fun output-fun]
+(defn make-transformed-process-fun [args input-fun output-fun sync?]
   (fn [input]
     (let [result-chan (async/chan 1 (map output-fun))]
       (call-process-with-channels 
        args 
        (async/go (input-fun input))
-       result-chan))))
+       (if sync? 
+         (<!! result-chan)
+         result-chan)))))
 
 (defn bytes-to-string [x]
   (String. x))
@@ -92,11 +94,16 @@
 
 (def result-to-string (result-to-x-fun bytes-to-string))
    
-(defn make-string-process-fun [args]
-  (make-transformed-process-fun 
-   args
-   string-to-bytes
-   result-to-string))
+(defn make-string-process-fun 
+  ([args sync?]
+   (make-transformed-process-fun 
+    args
+    string-to-bytes
+    result-to-string
+    sync?))
+  ([args]
+   (make-string-process-fun args true)))
+
 
 (def edn-to-bytes  (comp string-to-bytes pr-str))
 ;(defn edn-to-bytes [x]
@@ -111,12 +118,15 @@
     (catch Throwable e
       nil)))
 
-(defn make-edn-process-fun [args]
-  (make-transformed-process-fun
-   args
-   edn-to-bytes
-   (result-to-x-fun bytes-to-edn)))
-   
+(defn make-edn-process-fun 
+  ([args sync?]
+   (make-transformed-process-fun
+    args
+    edn-to-bytes
+    (result-to-x-fun bytes-to-edn)
+    sync?))
+  ([args]
+   (make-edn-process-fun args true)))
 
 (def call-sort (make-string-process-fun ["sort"]))
 

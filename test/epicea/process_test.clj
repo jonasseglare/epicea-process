@@ -25,7 +25,7 @@
 
       ;; OBS: The test script will corrupt line endings (\n), so dont try that
       (let [s "mjao"]
-        (is (= (:stdout (result/get-value (<!! (pfun s)))) s)))
+        (is (= (:stdout (result/get-value (pfun s))) s)))
 
-      (is (= (:stdout (result/get-value (<!! (pfun [:a 1]))))
+      (is (= (:stdout (result/get-value (pfun [:a 1])))
              [:a 1])))))
