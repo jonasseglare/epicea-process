@@ -1,7 +1,30 @@
-(ns epicea-process.core-test
+(ns epicea.process-test
   (:require [clojure.test :refer :all]
-            [epicea-process.core :refer :all]))
+            [clojure.core.async :refer [<!!]]
+            [epicea.process :refer :all]))
 
-(deftest a-test
+(deftest string-test
   (testing "FIXME, I fail."
-    (is (= 0 1))))
+    (is (= "kattskit" (bytes-to-string (string-to-bytes "kattskit"))))
+    (is (= (:stdout (:result (<!! (call-sort "kba\nabc"))))
+           "abc\nkba\n"))))
+
+(deftest edn-test
+  (testing "edn"
+    (is (= (bytes-to-edn (edn-to-bytes {:a 1}))
+           {:a 1}))))
+
+(deftest identity-edn
+  (testing "EDN"
+    (let [filename (.getFile (clojure.java.io/resource "testscript.sh"))
+          cmd (str "sh " filename)
+
+          ;; OBS: "sh" and filename are two different arguments!
+          pfun (make-edn-process-fun ["sh" filename])]
+
+      ;; OBS: The test script will corrupt line endings (\n), so dont try that
+      (let [s "mjao"]
+        (is (= (:stdout (:result (<!! (pfun s)))) s)))
+
+      (is (= (:stdout (:result (<!! (pfun [:a 1]))))
+             [:a 1])))))
