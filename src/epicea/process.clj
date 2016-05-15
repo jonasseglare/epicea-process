@@ -3,8 +3,8 @@
            [org.apache.commons.io IOUtils]
            [java.io BufferedReader InputStreamReader])
   (:require [clojure.core.async :as async :refer [<!! >!! <! >!]]
-            [mummi2.result :as result]
-            [mummi2.debug :as debug]))
+            [epicea.result :as result]
+            [epicea.outcome :as outcome]))
 
 ;;http://stackoverflow.com/questions/16714127/how-to-redirect-process-builders-output-to-a-string
 ;; http://stackoverflow.com/questions/1264709/convert-inputstream-to-byte-array-in-java
@@ -20,7 +20,7 @@
               (do (.close output)))))
         (catch RuntimeException e
           (println "Failed in write-all-to-process")
-          (>! result (result/make-error e)))))))
+          (>! result (result/make-failure e)))))))
 
 (defn read-all-from-process [stream]
   (let [dst (StringBuilder.)]
@@ -29,7 +29,7 @@
         (IOUtils/toByteArray stream)
         (catch RuntimeException e
           (println "Failed in read-all-from-process")
-          (result/make-error e))))))
+          (result/make-failure e))))))
 
 (defn call-process-with-channels [args input-channel output-channel]
   (assert (sequential? args))
@@ -44,13 +44,13 @@
               stdout (<! stdout-c)
               stderr (<! stderr-c)
               any-error (or (:error stdout) (:error stderr))
-              result (if any-error (result/make-error any-error)
-                         (result/make-result {:stdout stdout
+              result (if any-error (result/make-failure any-error)
+                         (result/make-success {:stdout stdout
                                               :stderr stderr}))]
           (>! output-channel result)))
       (catch RuntimeException e
         (println "Failed in call-process-with-channels")
-        (>! output-channel (result/make-error e)))))
+        (>! output-channel (result/make-failure e)))))
   output-channel)
 
 
@@ -78,7 +78,7 @@
 
 (defn result-to-x-fun [fun]
   (fn [result]
-    (if (result/failure? result)
+    (if (outcome/failure? result)
       result
       (try
         (result/with-result
@@ -88,7 +88,7 @@
           (println "Failed in result-to-x-fun")
           (println "stdout: " (:stdout (:result result)))
           (println "stderr: " (:stdout (:result result)))
-          (result/make-error e))))))
+          (result/make-failure e))))))
 
 (def result-to-string (result-to-x-fun bytes-to-string))
    
